@@ -5,11 +5,11 @@ import "package:github/dates.dart";
 
 import "common.dart";
 
-DivElement $users;
+DivElement usersDiv;
 
 void main() {
   init("users.dart", onReady: () {
-    $users = querySelector("#users");
+    usersDiv = querySelector("#users");
     loadUsers();
   });
 }
@@ -29,9 +29,8 @@ void loadUsers() {
         h.append(new BRElement());
       }
 
-      h.append(
-          GitHubBrowserHelper.createAvatarImage(user, width: 64, height: 64)
-        ..classes.add("avatar"));
+      h.append(GitHubBrowserHelper.createAvatarImage(user,
+          width: 64, height: 64)..classes.add("avatar"));
       var buff = new StringBuffer();
 
       buff
@@ -46,11 +45,12 @@ void loadUsers() {
       buff.writeln("Followers: ${user.followersCount}");
 
       h.append(new ParagraphElement()
-        ..appendHtml(buff.toString().replaceAll("\n", "<br/>")));
+        ..appendHtml(buff.toString().replaceAll("\n", "<br/>"),
+            treeSanitizer: NodeTreeSanitizer.trusted));
 
       m.append(h);
 
-      $users.querySelector("#${column}");
+      usersDiv.querySelector("#${column}");
 
       if (column == "left") {
         column = "right";

@@ -12,13 +12,13 @@ class ExploreService extends Service {
 
     if (language != null) url += "?l=${language}";
 
-    if (since != null) url +=
-        language == null ? "?since=${since}" : "&since=${since}";
+    if (since != null)
+      url += language == null ? "?since=${since}" : "&since=${since}";
 
-    var controller = new StreamController();
+    var controller = new StreamController<TrendingRepository>();
 
-    _github.client.request(new http.Request(url)).then((response) {
-      var doc = htmlParser.parse(response.body);
+    _github.client.get(url).then((response) {
+      var doc = html_parser.parse(response.body);
       var items = doc.querySelectorAll(
           "li.repo-leaderboard-list-item.leaderboard-list-item");
 
@@ -45,20 +45,22 @@ class ExploreService extends Service {
   }
 
   Future<Showcase> getShowcase(ShowcaseInfo info) {
-    var completer = new Completer();
+    var completer = new Completer<Showcase>();
 
-    _github.client.request(new http.Request(info.url)).then((response) {
-      var doc = htmlParser.parse(response.body);
+    _github.client.get(info.url).then((response) {
+      var doc = html_parser.parse(response.body);
       var showcase = new Showcase();
 
       var title = doc.querySelector(".collection-header").text;
       var lastUpdated = parseDateTime(doc
           .querySelector(".meta-info.last-updated")
-          .querySelector("time").attributes['datetime']);
+          .querySelector("time")
+          .attributes['datetime']);
       var page = doc.querySelector(".collection-page");
 
       var description = page.querySelector(".collection-description");
 
+      // TODO: This is most likely wrong
       showcase.description = description;
       showcase.lastUpdated = lastUpdated;
       showcase.title = title;
@@ -88,12 +90,12 @@ class ExploreService extends Service {
   }
 
   Stream<ShowcaseInfo> listShowcases() {
-    var controller = new StreamController();
+    var controller = new StreamController<ShowcaseInfo>();
 
     Function handleResponse;
 
     handleResponse = (response) {
-      var doc = htmlParser.parse(response.body);
+      var doc = html_parser.parse(response.body);
 
       var cards = doc.querySelectorAll(".collection-card");
 
@@ -122,10 +124,10 @@ class ExploreService extends Service {
       for (var link in links) {
         if (link.text.contains("Next")) {
           didFetchMore = true;
-          GitHub
-              .defaultClient()
-              .request(new http.Request(link.attributes['href']))
-              .then(handleResponse);
+
+          var client = new http.Client();
+
+          client.get(link.attributes['href']).then(handleResponse);
         }
       }
 
@@ -134,9 +136,7 @@ class ExploreService extends Service {
       }
     };
 
-    _github.client
-        .request(new http.Request("https://github.com/showcases"))
-        .then(handleResponse);
+    _github.client.get("https://github.com/showcases").then(handleResponse);
 
     return controller.stream;
   }

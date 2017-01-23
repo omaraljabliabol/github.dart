@@ -2,7 +2,6 @@ part of github.common;
 
 /// Model class for a file on GitHub.
 class GitHubFile {
-
   /// Type of File
   String type;
 
@@ -37,13 +36,20 @@ class GitHubFile {
   Links links;
 
   /// Text Content
-  String get text =>
-      new String.fromCharCodes(CryptoUtils.base64StringToBytes(content));
+  String get text {
+    if (_text == null) {
+      _text = UTF8.decode(BASE64.decode(content));
+    }
+    return _text;
+  }
+
+  String _text;
 
   /// Source Repository
   RepositorySlug sourceRepository;
 
-  static GitHubFile fromJSON(input, [RepositorySlug slug]) {
+  static GitHubFile fromJSON(Map<String, dynamic> input,
+      [RepositorySlug slug]) {
     if (input == null) return null;
 
     return new GitHubFile()
@@ -56,14 +62,13 @@ class GitHubFile {
       ..sha = input['sha']
       ..gitUrl = input['git_url']
       ..htmlUrl = input['html_url']
-      ..links = Links.fromJSON(input['_links'])
+      ..links = Links.fromJSON(input['_links'] as Map<String, dynamic>)
       ..sourceRepository = slug;
   }
 }
 
 /// File links.
 class Links {
-
   /// Git Link
   @ApiName("git")
   String git;
@@ -76,7 +81,7 @@ class Links {
   @ApiName("html")
   String html;
 
-  static Links fromJSON(input) {
+  static Links fromJSON(Map<String, dynamic> input) {
     if (input == null) return null;
 
     var links = new Links();
@@ -108,7 +113,7 @@ class CreateFile {
   CreateFile(this.path, this.content, this.message);
 
   String toJSON() {
-    var map = {};
+    var map = <String, dynamic>{};
     putValue("path", path, map);
     putValue("message", message, map);
     putValue("content", content, map);
@@ -126,7 +131,7 @@ class CommitUser {
   CommitUser(this.name, this.email);
 
   Map<String, dynamic> toMap() {
-    var map = {};
+    var map = <String, dynamic>{};
 
     putValue('name', name, map);
     putValue('email', email, map);
@@ -142,10 +147,11 @@ class ContentCreation {
 
   ContentCreation(this.commit, this.content);
 
-  static ContentCreation fromJSON(input) {
+  static ContentCreation fromJSON(Map<String, dynamic> input) {
     if (input == null) return null;
 
-    return new ContentCreation(RepositoryCommit.fromJSON(input['commit']),
-        GitHubFile.fromJSON(input['content']));
+    return new ContentCreation(
+        RepositoryCommit.fromJSON(input['commit'] as Map<String, dynamic>),
+        GitHubFile.fromJSON(input['content'] as Map<String, dynamic>));
   }
 }

@@ -12,7 +12,8 @@ class GitService extends Service {
   /// API docs: https://developer.github.com/v3/git/blobs/#get-a-blob
   Future<GitBlob> getBlob(RepositorySlug slug, String sha) {
     return _github.getJSON('/repos/${slug.fullName}/git/blobs/${sha}',
-        convert: GitBlob.fromJSON, statusCode: StatusCodes.OK);
+        convert: GitBlob.fromJSON,
+        statusCode: StatusCodes.OK) as Future<GitBlob>;
   }
 
   /// Creates a blob with specified [blob] content.
@@ -22,7 +23,7 @@ class GitService extends Service {
     return _github.postJSON('/repos/${slug.fullName}/git/blobs',
         convert: GitBlob.fromJSON,
         statusCode: StatusCodes.CREATED,
-        body: blob.toJSON());
+        body: blob.toJSON()) as Future<GitBlob>;
   }
 
   /// Fetches a commit from [slug] for a given [sha].
@@ -30,7 +31,8 @@ class GitService extends Service {
   /// API docs: https://developer.github.com/v3/git/commits/#get-a-commit
   Future<GitCommit> getCommit(RepositorySlug slug, String sha) {
     return _github.getJSON('/repos/${slug.fullName}/git/commits/${sha}',
-        convert: GitCommit.fromJSON, statusCode: StatusCodes.OK);
+        convert: GitCommit.fromJSON,
+        statusCode: StatusCodes.OK) as Future<GitCommit>;
   }
 
   /// Creates a new commit in a repository.
@@ -40,7 +42,7 @@ class GitService extends Service {
     return _github.postJSON('/repos/${slug.fullName}/git/commits',
         convert: GitCommit.fromJSON,
         statusCode: StatusCodes.CREATED,
-        body: commit.toJSON());
+        body: commit.toJSON()) as Future<GitCommit>;
   }
 
   /// Fetches a reference from a repository for the given [ref].
@@ -50,14 +52,15 @@ class GitService extends Service {
   /// API docs: https://developer.github.com/v3/git/refs/#get-a-reference
   Future<GitReference> getReference(RepositorySlug slug, String ref) {
     return _github.getJSON('/repos/${slug.fullName}/git/refs/${ref}',
-        convert: GitReference.fromJSON, statusCode: StatusCodes.OK);
+        convert: GitReference.fromJSON,
+        statusCode: StatusCodes.OK) as Future<GitReference>;
   }
 
   /// Lists the references in a repository.
   ///
   /// This will return all references on the system, including things like notes
   /// and stashes if they exist on the server. A sub-namespace can be requested
-  /// by specifying a [type], the most common beeing "heads" and "tags".
+  /// by specifying a [type], the most common being "heads" and "tags".
   ///
   /// API docs: https://developer.github.com/v3/git/refs/#get-all-references
   Stream<GitReference> listReferences(RepositorySlug slug, {String type}) {
@@ -66,8 +69,8 @@ class GitService extends Service {
       path += '/$type';
     }
 
-    return new PaginationHelper(_github).objects(
-        'GET', path, GitReference.fromJSON);
+    return new PaginationHelper(_github)
+        .objects('GET', path, GitReference.fromJSON) as Stream<GitReference>;
   }
 
   /// Creates a new reference in a repository.
@@ -81,14 +84,15 @@ class GitService extends Service {
     return _github.postJSON('/repos/${slug.fullName}/git/refs',
         convert: GitReference.fromJSON,
         statusCode: StatusCodes.CREATED,
-        body: JSON.encode({'ref': ref, 'sha': sha}));
+        body: JSON.encode({'ref': ref, 'sha': sha})) as Future<GitReference>;
   }
 
   /// Updates a reference in a repository.
   ///
   /// API docs: https://developer.github.com/v3/git/refs/#update-a-reference
   Future<GitReference> editReference(
-      RepositorySlug slug, String ref, String sha, {bool force: false}) {
+      RepositorySlug slug, String ref, String sha,
+      {bool force: false}) {
     String body = JSON.encode({'sha': sha, 'force': force});
     // Somehow the reference updates PATCH request needs a valid content-length.
     var headers = {'content-length': body.length.toString()};
@@ -97,7 +101,8 @@ class GitService extends Service {
         .request('PATCH', '/repos/${slug.fullName}/git/refs/${ref}',
             body: body, headers: headers)
         .then((response) {
-      return GitReference.fromJSON(JSON.decode(response.body));
+      return GitReference
+          .fromJSON(JSON.decode(response.body) as Map<String, dynamic>);
     });
   }
 
@@ -115,7 +120,7 @@ class GitService extends Service {
   /// API docs: https://developer.github.com/v3/git/tags/#get-a-tag
   Future<GitTag> getTag(RepositorySlug slug, String sha) {
     return _github.getJSON('/repos/${slug.fullName}/git/tags/${sha}',
-        convert: GitTag.fromJSON, statusCode: StatusCodes.OK);
+        convert: GitTag.fromJSON, statusCode: StatusCodes.OK) as Future<GitTag>;
   }
 
   /// Creates a new tag in a repository.
@@ -125,10 +130,10 @@ class GitService extends Service {
     return _github.postJSON('/repos/${slug.fullName}/git/tags',
         convert: GitTag.fromJSON,
         statusCode: StatusCodes.CREATED,
-        body: tag.toJSON());
+        body: tag.toJSON()) as Future<GitTag>;
   }
 
-  /// Fetches a tree from a repository for the given [ref].
+  /// Fetches a tree from a repository for the given ref [sha].
   ///
   /// If [recursive] is set to true, the tree is fetched recursively.
   ///
@@ -142,7 +147,8 @@ class GitService extends Service {
     }
 
     return _github.getJSON(path,
-        convert: GitTree.fromJSON, statusCode: StatusCodes.OK);
+        convert: GitTree.fromJSON,
+        statusCode: StatusCodes.OK) as Future<GitTree>;
   }
 
   /// Creates a new tree in a repository.
@@ -152,6 +158,15 @@ class GitService extends Service {
     return _github.postJSON('/repos/${slug.fullName}/git/trees',
         convert: GitTree.fromJSON,
         statusCode: StatusCodes.CREATED,
-        body: tree.toJSON());
+        body: tree.toJSON()) as Future<GitTree>;
+  }
+
+  Future<BranchProtection> getBranchProtection(
+      RepositorySlug slug, String branchName) {
+    return _github.getJSON(
+        '/repos/${slug.fullName}/branches/$branchName/protection',
+        statusCode: StatusCodes.OK,
+        preview: 'application/vnd.github.loki-preview+json',
+        convert: BranchProtection.fromJSON) as Future<BranchProtection>;
   }
 }

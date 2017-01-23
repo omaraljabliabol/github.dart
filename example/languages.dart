@@ -1,18 +1,17 @@
 import "dart:html";
 
-import "package:github/markdown.dart" as markdown;
-
+import 'markdown.dart' as markdown;
 import "package:github/browser.dart";
 import "common.dart";
 
-DivElement $table;
+DivElement tableDiv;
 
 LanguageBreakdown breakdown;
 
 void main() {
   initGitHub();
   init("languages.dart", onReady: () {
-    $table = querySelector("#table");
+    tableDiv = querySelector("#table");
     loadRepository();
   });
 }
@@ -33,8 +32,9 @@ void loadRepository() {
 
   document.getElementById("name").setInnerHtml("${user}/${reponame}");
 
-  github.repositories.listLanguages(new RepositorySlug(user, reponame)).then(
-      (b) {
+  github.repositories
+      .listLanguages(new RepositorySlug(user, reponame))
+      .then((b) {
     breakdown = b;
     reloadTable();
   });
@@ -50,7 +50,7 @@ void reloadTable({int accuracy: 4}) {
   isReloadingTable = true;
 
   github.misc.renderMarkdown(generateMarkdown(accuracy)).then((html) {
-    $table.innerHtml = html;
+    tableDiv.setInnerHtml(html, treeSanitizer: NodeTreeSanitizer.trusted);
     isReloadingTable = false;
   });
 }

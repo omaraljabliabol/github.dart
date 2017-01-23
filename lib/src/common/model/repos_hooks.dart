@@ -2,7 +2,6 @@ part of github.common;
 
 /// Model class for a repository hook.
 class Hook {
-
   /// Events to Subscribe to
   List<String> events;
 
@@ -32,24 +31,23 @@ class Hook {
 
   Map<String, dynamic> config;
 
-  static Hook fromJSON(repoName, input) {
+  static Hook fromJSON(String repoName, Map<String, dynamic> input) {
     if (input == null) return null;
 
     return new Hook()
-      ..events = input['events']
+      ..events = input['events'] as List<String>
       ..active = input['active']
       ..name = input['name']
       ..id = input['id']
       ..repoName = repoName
       ..updatedAt = parseDateTime(input['updated_at'])
       ..createdAt = parseDateTime(input['created_at'])
-      ..config = input['config'];
+      ..config = input['config'] as Map<String, dynamic>;
   }
 }
 
 /// Model class for a new hook to be created.
 class CreateHook {
-
   /// Hook Name
   final String name;
 

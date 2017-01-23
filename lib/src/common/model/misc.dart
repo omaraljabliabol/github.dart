@@ -2,14 +2,13 @@ part of github.common;
 
 /// Model class for a Gitignore Template.
 class GitignoreTemplate {
-
   /// Template Name
   String name;
 
   /// Template Source
   String source;
 
-  static GitignoreTemplate fromJSON(input) {
+  static GitignoreTemplate fromJSON(Map<String, dynamic> input) {
     if (input == null) return null;
 
     return new GitignoreTemplate()
@@ -20,7 +19,6 @@ class GitignoreTemplate {
 
 /// Model class for GitHub Rate Limit Information.
 class RateLimit {
-
   /// Maximum number of requests
   final int limit;
 
@@ -54,7 +52,7 @@ class APIStatus {
   @ApiName("body")
   String message;
 
-  static APIStatus fromJSON(input) {
+  static APIStatus fromJSON(Map<String, dynamic> input) {
     if (input == null) return null;
 
     return new APIStatus()

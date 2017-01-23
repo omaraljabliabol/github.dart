@@ -1,8 +1,10 @@
+import 'dart:async';
 import "package:github/server.dart";
 
-main() async {
+Future main() async {
   var github = createGitHubClient();
-  var repos = await github.repositories.listUserRepositories("dart-lang").toList();
+  var repos =
+      await github.repositories.listUserRepositories("dart-lang").toList();
   github.dispose();
   print(repos);
 }

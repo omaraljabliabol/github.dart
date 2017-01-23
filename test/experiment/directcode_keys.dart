@@ -1,8 +1,9 @@
+import 'dart:async';
 import "package:github/server.dart";
 
 import "package:quiver/async.dart";
 
-void main() {
+Future main() async {
   var github = createGitHubClient();
 
   github.organizations.get("DirectMyFile").then((organization) {
@@ -15,9 +16,7 @@ void main() {
     return group.future;
   }).then((mems) {
     return mems.reduce((value, e) {
-      return new Set()
-        ..addAll(value)
-        ..addAll(e);
+      return new Set()..addAll(value)..addAll(e);
     });
   }).then((members) {
     var group = new FutureGroup();

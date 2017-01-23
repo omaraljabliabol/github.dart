@@ -14,7 +14,6 @@ part of github.common;
 ///
 /// Due to Cross Origin Policy, it is not possible to do this completely client side.
 class OAuth2Flow {
-
   /// OAuth2 Client ID
   final String clientId;
 
@@ -35,11 +34,14 @@ class OAuth2Flow {
 
   GitHub github;
 
-  OAuth2Flow(this.clientId, this.clientSecret, {String redirectUri,
-      this.scopes: const [], this.state, this.github,
+  OAuth2Flow(this.clientId, this.clientSecret,
+      {String redirectUri,
+      this.scopes: const [],
+      this.state,
+      this.github,
       this.baseUrl: "https://github.com/login/oauth"})
-      : this.redirectUri = redirectUri == null ? null :
-      _checkRedirectUri(redirectUri);
+      : this.redirectUri =
+            redirectUri == null ? null : _checkRedirectUri(redirectUri);
 
   static String _checkRedirectUri(String uri) {
     return uri.contains("?") ? uri.substring(0, uri.indexOf("?")) : uri;
@@ -52,11 +54,11 @@ class OAuth2Flow {
     return baseUrl +
         "/authorize" +
         buildQueryString({
-      "client_id": clientId,
-      "scope": scopes.join(","),
-      "redirect_uri": redirectUri,
-      "state": state
-    });
+          "client_id": clientId,
+          "scope": scopes.join(","),
+          "redirect_uri": redirectUri,
+          "state": state
+        });
   }
 
   /// Exchanges the given [code] for a token.
@@ -77,16 +79,15 @@ class OAuth2Flow {
       "redirect_uri": redirectUri
     });
 
-    return (github == null ? GitHub.defaultClient() : github.client)
-        .request(new http.Request("${baseUrl}/access_token",
-            body: body, method: "POST", headers: headers))
+    return (github == null ? new http.Client() : github.client)
+        .post("${baseUrl}/access_token", body: body, headers: headers)
         .then((response) {
-      var json = response.asJSON();
+      var json = JSON.decode(response.body) as Map<String, dynamic>;
       if (json['error'] != null) {
         throw json;
       }
-      return new ExchangeResponse(
-          json['access_token'], json['token_type'], json['scope'].split(","));
+      return new ExchangeResponse(json['access_token'], json['token_type'],
+          (json['scope'] as String).split(","));
     });
   }
 }
